@@ -23,10 +23,10 @@ contract FlightSuretyData {
     struct Airlines {
         mapping (address => address[]) airlineVotes;
         mapping (address => AirlineStatus) airlineStatus;
+        uint256 count;
     }
 
     Airlines private airlines;
-    uint256 count;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -44,7 +44,7 @@ contract FlightSuretyData {
                                 public 
     {
         contractOwner = msg.sender;
-        count = 0;
+        airlines.count = 0;
         airlines.airlineStatus[firstAirline].registered = true;
         airlines.airlineStatus[firstAirline].participated = false;
     }
@@ -90,7 +90,7 @@ contract FlightSuretyData {
     */
     modifier canRegisterAirline(address airline)
     {
-        if (count < 4) {
+        if (airlines.count < 4) {
             require(!airlines.airlineStatus[airline].registered, "airline is already registered");
             require(airlines.airlineStatus[tx.origin].participated, "the caller airline has not paid participation fee.");
             _;
@@ -190,7 +190,7 @@ contract FlightSuretyData {
     {
         bool success;
         uint256 votes;
-        if (count < 4) {
+        if (airlines.count < 4) {
             airlines.airlineStatus[airline].registered = true;
             airlines.airlineVotes[airline].push(tx.origin);
             success = true;
@@ -198,7 +198,7 @@ contract FlightSuretyData {
         } else {
             airlines.airlineVotes[airline].push(tx.origin);
 
-            if (airlines.airlineVotes[airline].length < count.div(2)) {
+            if (airlines.airlineVotes[airline].length < airlines.count.div(2)) {
                 success = false;
                 votes = airlines.airlineVotes[airline].length;
             } else {
@@ -272,7 +272,7 @@ contract FlightSuretyData {
                             canFund
                             payable
     {
-        count = count.add(1);
+        airlines.count = airlines.count.add(1);
         airlines.airlineStatus[tx.origin].participated = true;
     }
 
