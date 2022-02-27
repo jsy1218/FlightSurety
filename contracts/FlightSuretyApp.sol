@@ -108,7 +108,7 @@ contract FlightSuretyApp {
                                 address airline
                             )
                             external
-                            returns(bool success, uint256 votes)
+                            returns(bool, uint256)
     {   
 
         return flightSuretyData.registerAirline(airline);
@@ -121,11 +121,14 @@ contract FlightSuretyApp {
     */  
     function registerFlight
                                 (
+                                    address airline,
+                                    string flight,
+                                    uint256 timestamp
                                 )
                                 external
                                 pure
     {
-
+        
     }
     
    /**
@@ -240,10 +243,7 @@ contract FlightSuretyApp {
 
         return oracles[msg.sender].indexes;
     }
-
-
-
-
+    
     // Called by oracle when a response is available to an outstanding request
     // For the response to be accepted, there must be a pending request that is open
     // and matches one of the three Indexes randomly assigned to the oracle at the
@@ -370,12 +370,6 @@ contract FlightSuretyData {
                             )
                             external
                             pure;
-
-    function fund
-                            (   
-                            )
-                            public
-                            payable;
 
     function getFlightKey
                         (

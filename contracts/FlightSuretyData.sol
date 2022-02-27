@@ -10,7 +10,10 @@ contract FlightSuretyData {
     /********************************************************************************************/
 
     address private contractOwner;                                      // Account used to deploy contract
+    mapping(address => uint256) private authorizedCallers;              // Addresses that can access this contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
+    uint public constant PARTICIPATION_FUND = 10 ether;
+
 
     struct AirlineStatus {
         bool registered;
@@ -20,10 +23,10 @@ contract FlightSuretyData {
     struct Airlines {
         mapping (address => address[]) airlineVotes;
         mapping (address => AirlineStatus) airlineStatus;
-        uint256 count;
     }
 
     Airlines private airlines;
+    uint256 count;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -41,9 +44,9 @@ contract FlightSuretyData {
                                 public 
     {
         contractOwner = msg.sender;
-        airlines.count.add(1);
+        count = 0;
         airlines.airlineStatus[firstAirline].registered = true;
-        airlines.airlineStatus[firstAirline].participated = true;
+        airlines.airlineStatus[firstAirline].participated = false;
     }
 
     /********************************************************************************************/
@@ -74,20 +77,27 @@ contract FlightSuretyData {
     }
 
     /**
+    * @dev Modifier that requires the "authorized" account to be the function caller
+    */
+    modifier isCallerAuthorized()
+    {
+        require(authorizedCallers[msg.sender] == 1, "Caller is not authorized");
+        _;
+    }
+
+    /**
     * @dev Modifier that checks the airline registration requirements
     */
-    modifier requireCanRegisterAirline(address airline)
+    modifier canRegisterAirline(address airline)
     {
-        if (airlines.count > 0 && airlines.count < 4) {
+        if (count < 4) {
             require(!airlines.airlineStatus[airline].registered, "airline is already registered");
-            require(airlines.airlineStatus[msg.sender].participated, "the caller airline has not paid participation fee.");
+            require(airlines.airlineStatus[tx.origin].participated, "the caller airline has not paid participation fee.");
             _;
-        }
-
-        if (airlines.count >= 4) {
+        } else {
             bool isDuplicate = false;
             for(uint c=0; c<airlines.airlineVotes[airline].length; c++) {
-                if (airlines.airlineVotes[airline][c] == msg.sender) {
+                if (airlines.airlineVotes[airline][c] == tx.origin) {
                     isDuplicate = true;
                     break;
                 }
@@ -97,9 +107,39 @@ contract FlightSuretyData {
         }
     }
 
+    /**
+    * @dev Modifier that checks the airline funding
+    */
+    modifier canFund()
+    {
+        require(airlines.airlineStatus[tx.origin].registered, "airline is not registered");
+        require(!airlines.airlineStatus[tx.origin].participated, "airline has already participated");
+        require(msg.value == PARTICIPATION_FUND, "airline must fund 10 ether");
+        require(tx.origin.balance >= PARTICIPATION_FUND, "airline must have enough balance");
+        _;
+    }
+
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
+
+    function authorizeCaller(
+                                address dataContract
+                            )
+                            external
+                            requireContractOwner
+    {
+        authorizedCallers[dataContract] = 1;
+    }
+
+    function deauthorizeCaller(
+                                address dataContract
+                            )
+                            external
+                            requireContractOwner
+    {
+        authorizedCallers[dataContract] = 0;
+    }
 
     /**
     * @dev Get operating status of contract
@@ -114,7 +154,6 @@ contract FlightSuretyData {
         return operational;
     }
 
-
     /**
     * @dev Sets contract operations on/off
     *
@@ -123,9 +162,9 @@ contract FlightSuretyData {
     function setOperatingStatus
                             (
                                 bool mode
-                            ) 
+                            )
                             external
-                            requireContractOwner 
+                            requireContractOwner
     {
         operational = mode;
     }
@@ -145,22 +184,42 @@ contract FlightSuretyData {
                             )
                             external
                             requireIsOperational
-                            requireCanRegisterAirline(airline)
-                            returns(bool success, uint256 votes)
+                            isCallerAuthorized
+                            canRegisterAirline(airline)
+                            returns(bool, uint256)
     {
-        if (airlines.count < 4) {
+        bool success;
+        uint256 votes;
+        if (count < 4) {
             airlines.airlineStatus[airline].registered = true;
-            airlines.airlineVotes[airline].push(msg.sender);
-            return (true, 1);
+            airlines.airlineVotes[airline].push(tx.origin);
+            success = true;
+            votes = airlines.airlineVotes[airline].length;
         } else {
-            airlines.airlineVotes[airline].push(msg.sender);
-            if (airlines.airlineVotes[airline].length < airlines.count.div(2)) {
-                return (false, airlines.airlineVotes[airline].length);
+            airlines.airlineVotes[airline].push(tx.origin);
+
+            if (airlines.airlineVotes[airline].length < count.div(2)) {
+                success = false;
+                votes = airlines.airlineVotes[airline].length;
             } else {
                 airlines.airlineStatus[airline].registered = true;
-                return (true, airlines.airlineVotes[airline].length);
+                success = true;
+                votes = airlines.airlineVotes[airline].length;
             }
         }
+
+        return (success, votes);
+    }
+
+    function isAirline
+                        (
+                            address airline
+                        )
+                        public 
+                        view 
+                        returns(bool) 
+    {
+        return airlines.airlineStatus[airline].registered;
     }
 
 
@@ -210,21 +269,11 @@ contract FlightSuretyData {
                             (   
                             )
                             public
+                            canFund
                             payable
     {
-    }
-
-    function getFlightKey
-                        (
-                            address airline,
-                            string memory flight,
-                            uint256 timestamp
-                        )
-                        pure
-                        internal
-                        returns(bytes32) 
-    {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
+        count = count.add(1);
+        airlines.airlineStatus[tx.origin].participated = true;
     }
 
     /**
