@@ -1,10 +1,11 @@
 
 var Test = require('../config/testConfig.js');
-var BigNumber = require('bignumber.js');
+var BN = require('bn.js');
 
 contract('Flight Surety Tests', async (accounts) => {
 
   var config;
+  let now = Date.now();
   before('setup contract', async () => {
     config = await Test.Config(accounts);
     await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
@@ -172,7 +173,7 @@ contract('Flight Surety Tests', async (accounts) => {
     // ACT
     // fourth airline is registered and funded now
     await config.flightSuretyData.fund({from: fourthAirline, value: funds});
-    // first airline alone cannot register fifth airline
+    // fourth airline alone cannot register fifth airline
     await config.flightSuretyApp.registerAirline(fifthAirline, {from: fourthAirline});
 
     let result = await config.flightSuretyData.isAirline.call(fifthAirline); 
@@ -208,17 +209,323 @@ contract('Flight Surety Tests', async (accounts) => {
     // ARRANGE
     let secondAirline = accounts[2];
     let fifthAirline = accounts[5];
-    let funds = await config.flightSuretyData.PARTICIPATION_FUND.call();
 
     // ACT
     // second airline can register fifth airline
     await config.flightSuretyApp.registerAirline(fifthAirline, {from: secondAirline});
-    // fifth airline is registered and funded now
-    await config.flightSuretyData.fund({from: fifthAirline, value: funds});
 
     let result = await config.flightSuretyData.isAirline.call(fifthAirline); 
 
     // ASSERT
     assert.equal(result, true, "Fifth airline should be registered now.");
   });
+
+  it('fifth (airline) cannot register sixth Airline using registerAirline() because of no funding', async () => {
+    
+    // ARRANGE
+    let fifthAirline = accounts[5];
+    let sixthAirline = accounts[6];
+    let reverted = false;
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline(sixthAirline, {from: fifthAirline});
+    }
+    catch(e) {
+      reverted = true;
+      assert.equal(e.reason, "the caller airline has not paid participation fee.", "The caller cannot register.");
+    }
+
+    assert.equal(reverted, true, "New airline registration should be reverted.");      
+
+    let result = await config.flightSuretyData.isAirline.call(sixthAirline); 
+
+    // ASSERT
+    assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding.");
+
+  });
+
+  it('fifth (airline) cannot register sixth Airline using registerAirline() because of multi-party consensus', async () => {
+    
+    // ARRANGE
+    let fifthAirline = accounts[5];
+    let sixthAirline = accounts[6];
+    let funds = await config.flightSuretyData.PARTICIPATION_FUND.call();
+
+    // ACT
+    // fifth airline is registered and funded now
+    await config.flightSuretyData.fund({from: fifthAirline, value: funds});
+    // fifth airline alone cannot register sixth airline
+    await config.flightSuretyApp.registerAirline(sixthAirline, {from: fifthAirline});
+
+    let result = await config.flightSuretyData.isAirline.call(sixthAirline); 
+
+    // ASSERT
+    assert.equal(result, false, "Sixth airline should not be registered yet, because of insufficient votes");
+
+  });
+
+  it('fifth (airline) cannot register sixth Airline using registerAirline() again', async () => {
+    
+    // ARRANGE
+    let fifthAirline = accounts[5];
+    let sixthAirline = accounts[6];
+    let reverted = false;
+
+    // ACT
+    // fifth airline cannot register sixth airline again
+    try {
+      await config.flightSuretyApp.registerAirline(sixthAirline, {from: fifthAirline});
+    }
+    catch(e) {
+      reverted = true;
+      assert.equal(e.reason, "the caller airline has already voted for passed in airline.", "revert reason must be double voting.");
+    }
+
+    // ASSERT
+    assert.equal(reverted, true, "Fifth line cannot register sixth airline again.");
+  });
+
+  it('one more (airline) can register sixth Airline using registerAirline() because of multi-party consensus', async () => {
+    
+    // ARRANGE
+    let secondAirline = accounts[2];
+    let sixthAirline = accounts[6];
+    let funds = await config.flightSuretyData.PARTICIPATION_FUND.call();
+
+    // ACT
+    // second airline can register sixth airline
+    await config.flightSuretyApp.registerAirline(sixthAirline, {from: secondAirline});
+    // sixth airline is registered and funded now
+    await config.flightSuretyData.fund({from: sixthAirline, value: funds});
+
+    let result = await config.flightSuretyData.isAirline.call(sixthAirline); 
+
+    // ASSERT
+    assert.equal(result, true, "Sixth airline should be registered now.");
+  });
+
+  it('Seventh airline cannot register flight using registerFlight() because of no registration', async () => {
+    
+    // ARRANGE
+    let seventhAirline = accounts[7];
+    let reverted = false;
+
+    try {
+      // ACT
+      // seventh airline can register first flight
+      await config.flightSuretyApp.registerFlight(seventhAirline, "FirstFlight", Math.floor(now / 1000) + 60000);
+    }
+    catch(e) {
+      reverted = true;
+      assert.equal(e.reason, "airline is not registered yet.", "revert reason must be airline not registered yet.");
+    }
+
+    // ASSERT
+    assert.equal(reverted, true, "Seventh airline cannot register flight.");
+
+  });
+
+  it('First airline cannot register flight using registerFlight() because of past timestamp', async () => {
+    
+    // ARRANGE
+    let reverted = false;
+
+    try {
+      // ACT
+      // seventh airline can register first flight
+      await config.flightSuretyApp.registerFlight(config.firstAirline, "FirstFlight", Math.floor(now / 1000) - 60000);
+    }
+    catch(e) {
+      reverted = true;
+      assert.equal(e.reason, "flight must be in future", "revert reason must be flight must be in future.");
+    }
+
+    // ASSERT
+    assert.equal(reverted, true, "First airline cannot register flight.");
+
+  });
+
+  it('First airline can register flight using registerFlight()', async () => {
+    
+    // ARRANGE
+
+    // ACT
+    // first airline can register first flight
+    await config.flightSuretyApp.registerFlight(config.firstAirline, "FirstFlight", Math.floor(now / 1000) + 60000);
+
+  });
+
+  it('First airline cannot register flight using registerFlight() because of double registration', async () => {
+    
+    // ARRANGE
+    let reverted = false;
+
+    try {
+      // ACT
+      // seventh airline can register first flight
+      await config.flightSuretyApp.registerFlight(config.firstAirline, "FirstFlight", Math.floor(now / 1000) + 60000);
+    }
+    catch(e) {
+      reverted = true;
+      assert.equal(e.reason, "flight is already registered", "revert reason must be flight is already registered.");
+    }
+
+    // ASSERT
+    assert.equal(reverted, true, "First airline cannot register flight again.");
+
+  });
+
+  it('Passenger cannot buy insurance for first flight using registerFlight() because of over paid amount', async () => {
+    
+    // ARRANGE
+    let reverted = false;
+    let passenger = accounts[8];
+    let funds = await config.flightSuretyData.INSURANCE_PAY_LIMIT.call() * 2;
+
+    try {
+      // ACT
+      // passenger cannot buy insurance for the first flight
+      await config.flightSuretyData.buy(config.firstAirline, "FirstFlight", Math.floor(now / 1000) + 60000, {from: passenger, value: funds});
+    }
+    catch(e) {
+      reverted = true;
+      assert.equal(e.reason, "Passenger overbought the insurance.", "Revert reason must be passenger overbought the insurance.");
+    }
+
+    // ASSERT
+    assert.equal(reverted, true, "Passenger overbought the insurance.");
+
+  });
+
+  it('Passenger cannot buy insurance for second flight using registerFlight() because not registered', async () => {
+    
+    // ARRANGE
+    let reverted = false;
+    let passenger = accounts[8];
+    let funds = await config.flightSuretyData.INSURANCE_PAY_LIMIT.call();
+
+    try {
+      // ACT
+      // passenger cannot buy insurance for the first flight
+      await config.flightSuretyData.buy(config.firstAirline, "SecondFlight", Math.floor(now / 1000) + 60000, {from: passenger, value: funds});
+    }
+    catch(e) {
+      reverted = true;
+      assert.equal(e.reason, "Flight is not registered yet.", "Revert reason must be not registered flight.");
+    }
+
+    // ASSERT
+    assert.equal(reverted, true, "Flight is not registered yet.");
+
+  });
+
+  it('Passenger buy half of the insurance for first flight using registerFlight()', async () => {
+    
+    // ARRANGE
+    let passenger = accounts[8];
+    let funds = await config.flightSuretyData.INSURANCE_PAY_LIMIT.call() / 2;
+
+    // ACT
+    // passenger can buy insurance for the first flight
+    await config.flightSuretyData.buy(config.firstAirline, "FirstFlight", Math.floor(now / 1000) + 60000, {from: passenger, value: funds});
+
+  });
+
+  it('Passenger buy another half of the insurance for first flight using registerFlight()', async () => {
+    
+    // ARRANGE
+    let passenger = accounts[8];
+    let funds = await config.flightSuretyData.INSURANCE_PAY_LIMIT.call() / 2;
+
+    // ACT
+    // passenger can buy insurance for the first flight
+    await config.flightSuretyData.buy(config.firstAirline, "FirstFlight", Math.floor(now / 1000) + 60000, {from: passenger, value: funds});
+
+  });
+
+  it('Passenger cannot buy insurance for first flight using registerFlight() because of over paid amount', async () => {
+    
+    // ARRANGE
+    let reverted = false;
+    let passenger = accounts[8];
+
+    try {
+      // ACT
+      // passenger cannot buy insurance for the first flight
+      await config.flightSuretyData.buy(config.firstAirline, "FirstFlight", Math.floor(now / 1000) + 60000, {from: passenger, value: web3.utils.toWei(web3.utils.toBN(1))});
+    }
+    catch(e) {
+      reverted = true;
+      assert.equal(e.reason, "Passenger overbought the insurance.", "Revert reason must be passenger overbought the insurance.");
+    }
+
+    // ASSERT
+    assert.equal(reverted, true, "Passenger overbought the insurance.");
+
+  });
+
+  it('Second Passenger buy half of the insurance for first flight using registerFlight()', async () => {
+    
+    // ARRANGE
+    let passenger = accounts[9];
+    let funds = await config.flightSuretyData.INSURANCE_PAY_LIMIT.call() * 1 / 2;
+
+    // ACT
+    // passenger can buy insurance for the first flight
+    await config.flightSuretyData.buy(config.firstAirline, "FirstFlight", Math.floor(now / 1000) + 60000, {from: passenger, value: funds});
+
+  });
+
+  it('Smart contract credit insurees for the first flight using creditInsurees()', async () => {
+    
+    // ARRANGE
+    let firstPassenger = accounts[8];
+    let secondPassenger = accounts[9];
+    let funds = await config.flightSuretyData.INSURANCE_PAY_LIMIT.call();
+
+    // ACT
+    // passenger can get credited insurance for the first flight
+    await config.flightSuretyData.creditInsurees(config.firstAirline, "FirstFlight", Math.floor(now / 1000) + 60000);
+
+    // ASSERT
+    let firstPassengerCredit = await config.flightSuretyData.getInsureeCredit.call({from: firstPassenger});
+    assert.equal(firstPassengerCredit.toString(10), (funds * 3 / 2).toString(10), "first passenger should get 1.5 ether");
+    let secondPassengerCredit = await config.flightSuretyData.getInsureeCredit.call({from: secondPassenger});
+    assert.equal(secondPassengerCredit.toString(10), (funds * 3 / 4).toString(10), "second passenger should get 1 ether");
+
+  });
+
+  it('Smart contract credit insurees for the first flight using creditInsurees() again', async () => {
+    
+    // ARRANGE
+    let firstPassenger = accounts[8];
+    let secondPassenger = accounts[9];
+    let funds = await config.flightSuretyData.INSURANCE_PAY_LIMIT.call();
+
+    // ACT
+    // passenger cannot get credited insurance for the first flight again
+    await config.flightSuretyData.creditInsurees(config.firstAirline, "FirstFlight", Math.floor(now / 1000) + 60000);
+
+    // ASSERT
+    let firstPassengerCredit = await config.flightSuretyData.getInsureeCredit.call({from: firstPassenger});
+    assert.equal(firstPassengerCredit.toString(10), (funds * 3 / 2).toString(10), "first passenger should get 1.5 ether");
+    let secondPassengerCredit = await config.flightSuretyData.getInsureeCredit.call({from: secondPassenger});
+    assert.equal(secondPassengerCredit.toString(10), (funds * 3 / 4).toString(10), "second passenger should get 1 ether");
+
+  });
+
+  it('Smart contract pays out the credit to passengers', async () => {
+    
+    // ARRANGE
+    let firstPassenger = accounts[8];
+    let secondPassenger = accounts[9];
+
+    // ACT
+    // passenger can get credited insurance for the first flight
+    await config.flightSuretyData.pay({from: firstPassenger});
+    await config.flightSuretyData.pay({from: secondPassenger});
+
+  });
+
 });

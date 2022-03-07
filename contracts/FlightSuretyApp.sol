@@ -16,25 +16,8 @@ contract FlightSuretyApp {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
-    // Flight status codees
-    uint8 private constant STATUS_CODE_UNKNOWN = 0;
-    uint8 private constant STATUS_CODE_ON_TIME = 10;
-    uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
-    uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
-    uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
-    uint8 private constant STATUS_CODE_LATE_OTHER = 50;
-
     address private contractOwner;          // Account used to deploy contract
     FlightSuretyData flightSuretyData;
-
-    struct Flight {
-        bool isRegistered;
-        uint8 statusCode;
-        uint256 updatedTimestamp;        
-        address airline;
-    }
-    mapping(bytes32 => Flight) private flights;
-
  
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -126,9 +109,8 @@ contract FlightSuretyApp {
                                     uint256 timestamp
                                 )
                                 external
-                                pure
     {
-        
+        flightSuretyData.registerFlight(airline, flight, timestamp);
     }
     
    /**
@@ -170,7 +152,7 @@ contract FlightSuretyApp {
     } 
 
 
-// region ORACLE MANAGEMENT
+    // region ORACLE MANAGEMENT
 
     // Incremented to add pseudo-randomness at various points
     uint8 private nonce = 0;    
@@ -278,20 +260,6 @@ contract FlightSuretyApp {
         }
     }
 
-
-    function getFlightKey
-                        (
-                            address airline,
-                            string flight,
-                            uint256 timestamp
-                        )
-                        pure
-                        internal
-                        returns(bytes32) 
-    {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
-    }
-
     // Returns array of three non-duplicating integers from 0-9
     function generateIndexes
                             (                       
@@ -353,11 +321,13 @@ contract FlightSuretyData {
                             external
                             returns(bool success, uint256 votes);
 
-    function buy
-                            (                             
+    function registerFlight
+                            (
+                                address airline,
+                                string flight,
+                                uint256 timestamp
                             )
-                            external
-                            payable;
+                            external;
 
     function creditInsurees
                                 (
@@ -371,13 +341,4 @@ contract FlightSuretyData {
                             external
                             pure;
 
-    function getFlightKey
-                        (
-                            address airline,
-                            string memory flight,
-                            uint256 timestamp
-                        )
-                        pure
-                        internal
-                        returns(bytes32);
 }
