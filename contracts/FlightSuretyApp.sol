@@ -329,16 +329,4 @@ contract FlightSuretyData {
                             )
                             external;
 
-    function creditInsurees
-                                (
-                                )
-                                external
-                                pure;
-    
-    function pay
-                            (
-                            )
-                            external
-                            pure;
-
 }
