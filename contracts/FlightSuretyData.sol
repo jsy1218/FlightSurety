@@ -388,7 +388,7 @@ contract FlightSuretyData {
                                     string flight,
                                     uint256 timestamp
                                 )
-                                external
+                                public
                                 requireIsOperational
     {
         bytes32 flightKey = getFlightKey(airline, flight, timestamp);
@@ -399,6 +399,29 @@ contract FlightSuretyData {
                 passenger.flightInsuranceCredit += passenger.boughtFlightInsurance[flightKey].mul(3).div(2);
                 passenger.boughtFlightInsurance[flightKey] = 0;
             }
+        }
+    }
+
+    /**
+    *  @dev Process flight status data changes
+    */
+    function processFlightStatus
+                                (
+                                    address airline,
+                                    string flight,
+                                    uint256 timestamp,
+                                    uint8 statusCode
+                                )
+                                external
+                                requireIsOperational
+                                isFlightRegistered(airline, flight, timestamp)
+    {
+        bytes32 flightKey = getFlightKey(airline, flight, timestamp);
+        flights[flightKey].updatedTimestamp = timestamp;
+        flights[flightKey].statusCode = statusCode;
+
+        if (statusCode == STATUS_CODE_LATE_AIRLINE) {
+            creditInsurees(airline, flight, timestamp);
         }
     }
 
