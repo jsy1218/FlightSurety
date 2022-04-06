@@ -16,6 +16,14 @@ import './flightsurety.css';
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
     
+        // User-submitted transaction
+        DOM.elid('register-airline').addEventListener('click', () => {
+            let airline = DOM.elid('airline').value;
+            // Write transaction
+            contract.registerAirline(airline, (error, result) => {
+                display('Airline', 'Register airline', [ { label: 'Register Airline Status', error: error, value: result } ]);
+            });
+        })
 
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
