@@ -39,6 +39,13 @@ export default class Contract {
                 }
             });
 
+            this.flightSuretyData.methods.fund().send({from: this.owner, value: this.web3.utils.toWei("10", "ether") }, (error, result) => {
+                if(error) {
+                    console.log("Airline " + this.owner  + " cannot fund.");
+                    console.log(error);
+                }
+            });
+
             callback();
         });
     }
@@ -84,7 +91,17 @@ export default class Contract {
                 if (error) {
                     callback(error, result);
                 } else {
-                    callback(error, payload.fromAirline + " successfully registered airline " + payload.airlineToRegister)
+                    self.flightSuretyData.methods.isAirline(payload.airlineToRegister).call({ from: self.owner}, (error, result) => {
+                        if (error) {
+                            callback(error, result);
+                        } else {
+                            if (result == true) {
+                                callback(error, payload.fromAirline + " successfully registered airline " + payload.airlineToRegister)
+                            } else {
+                                callback(error, payload.fromAirline + " needs more registration from other airline(s)")
+                            }
+                        }
+                    });
                 }
             });
     }
@@ -110,12 +127,37 @@ export default class Contract {
             });
     }
 
-    fetchFlightStatus(flight, callback) {
+    buy(passenger, airline, flight, timestamp, callback) {
         let self = this;
         let payload = {
-            airline: self.airlines[0],
+            passenger: passenger,
+            airline: airline,
             flight: flight,
-            timestamp: Math.floor(Date.now() / 1000)
+            timestamp: timestamp
+        }
+        if (!this.airlines.includes(airline)) {
+            callback("airline " + airline + " is not valid. Valid airlines are " + this.airlines.join('\r\n'))
+        }
+        if (!this.passengers.includes(passenger)) {
+            callback("passengers " + passenger + " is not valid. Valid passengers are " + this.passenger.join('\r\n'))
+        }
+        self.flightSuretyData.methods
+            .buy(payload.airline, payload.flight, payload.timestamp)
+            .send({ from: payload.passenger, gas: 6721975 }, (error, result) => {
+                if (error) {
+                    callback(error, result);
+                } else {
+                    callback(error, payload.passenger + " successfully bought insurance for airline " + payload.airline + " flight " + payload.flight + " at time " + new Date(payload.timestamp * 1000))
+                }
+            });
+    }
+
+    fetchFlightStatus(airline, flight, timestamp, callback) {
+        let self = this;
+        let payload = {
+            airline: airline,
+            flight: flight,
+            timestamp: timestamp
         } 
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
