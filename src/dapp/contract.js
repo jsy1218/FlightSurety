@@ -75,8 +75,8 @@ export default class Contract {
             fromAirline: fromAirline,
             airlineToRegister: airlineToRegister
         }
-        if (!this.airlines.includes(airline)) {
-            callback("airline " + airline + " is not valid. Valid airlines are " + this.airlines.join('\r\n'))
+        if (!this.airlines.includes(airlineToRegister)) {
+            callback("airline " + airlineToRegister + " is not valid. Valid airlines are " + this.airlines.join('\r\n'))
         }
         self.flightSuretyApp.methods
             .registerAirline(payload.airlineToRegister)
