@@ -349,11 +349,16 @@ contract('Flight Surety Tests', async (accounts) => {
   it('First airline can register flight using registerFlight()', async () => {
     
     // ARRANGE
+    let timestamp = Math.floor(now / 1000) + 60000;
 
     // ACT
     // first airline can register first flight
-    await config.flightSuretyApp.registerFlight(config.firstAirline, "FirstFlight", Math.floor(now / 1000) + 60000);
+    await config.flightSuretyApp.registerFlight(config.firstAirline, "FirstFlight", timestamp);
 
+   let flightStatus= await config.flightSuretyData.viewFlightStatus.call(config.firstAirline, "FirstFlight", timestamp);
+
+   // ASSERT
+   assert.equal(flightStatus, 0, "Flight status code should be 0");
   });
 
   it('First airline cannot register flight using registerFlight() because of double registration', async () => {

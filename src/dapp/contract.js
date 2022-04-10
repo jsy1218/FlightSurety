@@ -71,7 +71,7 @@ export default class Contract {
                 if (error) {
                     callback(error, result);
                 } else {
-                    callback(error, "Successfully funded airline " + airline)
+                    callback(error, "Airline " + airline + " successfully funded flight surety with " + Web3.utils.fromWei(value, "ether") + " ether")
                 }
             });
     }
@@ -82,7 +82,7 @@ export default class Contract {
             fromAirline: fromAirline,
             airlineToRegister: airlineToRegister
         }
-        if (!this.airlines.includes(airlineToRegister)) {
+        if (!this.airlines.includes(airlineToRegister) && fromAirline != self.owner) {
             callback("airline " + airlineToRegister + " is not valid. Valid airlines are " + this.airlines.join('\r\n'))
         }
         self.flightSuretyApp.methods
@@ -96,9 +96,9 @@ export default class Contract {
                             callback(error, result);
                         } else {
                             if (result == true) {
-                                callback(error, payload.fromAirline + " successfully registered airline " + payload.airlineToRegister)
+                                callback(error, "Airline " + payload.fromAirline + " successfully registered airline " + payload.airlineToRegister)
                             } else {
-                                callback(error, payload.fromAirline + " needs more registration from other airline(s)")
+                                callback(error, "Airline " + payload.fromAirline + " needs more registration from other airline(s)")
                             }
                         }
                     });
@@ -122,12 +122,12 @@ export default class Contract {
                 if (error) {
                     callback(error, result);
                 } else {
-                    callback(error, payload.airline + " successfully registered flight " + payload.flight + " at time " + new Date(payload.timestamp * 1000))
+                    callback(error, "Airline " + payload.airline + " successfully registered flight " + payload.flight + " at time " + new Date(payload.timestamp * 1000))
                 }
             });
     }
 
-    buy(passenger, airline, flight, timestamp, callback) {
+    buy(passenger, ether, airline, flight, timestamp, callback) {
         let self = this;
         let payload = {
             passenger: passenger,
@@ -135,6 +135,7 @@ export default class Contract {
             flight: flight,
             timestamp: timestamp
         }
+        let value = this.web3.utils.toWei(ether, "ether");
         if (!this.airlines.includes(airline)) {
             callback("airline " + airline + " is not valid. Valid airlines are " + this.airlines.join('\r\n'))
         }
@@ -143,11 +144,11 @@ export default class Contract {
         }
         self.flightSuretyData.methods
             .buy(payload.airline, payload.flight, payload.timestamp)
-            .send({ from: payload.passenger, gas: 6721975 }, (error, result) => {
+            .send({ from: payload.passenger, value: value, gas: 6721975 }, (error, result) => {
                 if (error) {
                     callback(error, result);
                 } else {
-                    callback(error, payload.passenger + " successfully bought insurance for airline " + payload.airline + " flight " + payload.flight + " at time " + new Date(payload.timestamp * 1000))
+                    callback(error, "Passenger " + payload.passenger + " successfully bought " + ether + " ether of insurance for airline " + payload.airline + " flight " + payload.flight + " at time " + new Date(payload.timestamp * 1000))
                 }
             });
     }
@@ -162,7 +163,33 @@ export default class Contract {
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
             .send({ from: self.owner }, (error, result) => {
-                callback(error, payload);
+                if (error) {
+                    callback(error, payload);
+                } else {                   
+                    self.flightSuretyData.methods
+                        .viewFlightStatus(payload.airline, payload.flight, payload.timestamp)
+                        .call({ from: self.owner }, (error, result) => {
+                            if (error) {
+                                callback(error, "cannot view status")
+                            } else {
+                                if (result == 0) {
+                                    callback(error, "Flight status: unknown")
+                                } else if (result == 10) {
+                                    callback(error, "Flight status: on-time")
+                                } else if (result == 20) {
+                                    callback(error, "Flight status: late airline")
+                                } else if (result == 30) {
+                                    callback(error, "Flight status: late weather")
+                                } else if (result == 40) {
+                                    callback(error, "Flight status: late technical")
+                                } else if (result == 50) {
+                                    callback(error, "Flight status: late other")
+                                } else {
+                                    callback(error, "cannot view status")
+                                }
+                            }
+                        });
+                }
             });
     }
 }

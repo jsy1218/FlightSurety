@@ -358,6 +358,25 @@ contract FlightSuretyData {
     }
 
    /**
+    * @dev View flight status for DApps
+    *
+    */ 
+    function viewFlightStatus
+                        (
+                            address airline,
+                            string flight,
+                            uint256 timestamp                            
+                        )
+                        view
+                        external
+                        isFlightRegistered(airline, flight, timestamp)
+                        returns(uint8) 
+    {
+        bytes32 flightKey = getFlightKey(airline, flight, timestamp);
+        return flights[flightKey].statusCode;
+    }
+
+   /**
     * @dev Buy insurance for a flight
     *
     */   
