@@ -19,6 +19,7 @@ contract FlightSuretyData {
     struct AirlineStatus {
         bool registered;
         bool participated;
+        uint256 funded;
     }
 
     struct Airlines {
@@ -191,8 +192,8 @@ contract FlightSuretyData {
     {
         require(airlines.airlineStatus[tx.origin].registered, "airline is not registered");
         require(!airlines.airlineStatus[tx.origin].participated, "airline has already participated");
-        require(tx.origin.balance >= PARTICIPATION_FUND, "airline must have enough balance");
-        require(msg.value == PARTICIPATION_FUND, "airline must fund 10 ether");
+        require(airlines.airlineStatus[tx.origin].funded + msg.value <= PARTICIPATION_FUND, "Airline over funded the surety");
+        require(tx.origin.balance >= 0 ether, "airline must have enough balance");
         _;
     }
 
@@ -488,8 +489,11 @@ contract FlightSuretyData {
                             requireExternallyOwnedAccount
                             payable
     {
-        airlines.count = airlines.count.add(1);
-        airlines.airlineStatus[tx.origin].participated = true;
+        airlines.airlineStatus[tx.origin].funded += msg.value; 
+        if (airlines.airlineStatus[tx.origin].funded == PARTICIPATION_FUND) {
+            airlines.count = airlines.count.add(1);
+            airlines.airlineStatus[tx.origin].participated = true;
+        }
     }
 
     /**

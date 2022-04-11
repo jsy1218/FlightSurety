@@ -92,9 +92,9 @@ export default class Contract {
             });
     }
 
-    fund(airline, callback) {
+    fund(airline, funds, callback) {
         let self = this;
-        let value = this.web3.utils.toWei("10", "ether");
+        let value = this.web3.utils.toWei(funds, "ether");
 
         self.flightSuretyData.methods
             .fund()

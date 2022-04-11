@@ -30,8 +30,9 @@ import './flightsurety.css';
         // User-submitted transaction
         DOM.elid('fund').addEventListener('click', () => {
             let airline = DOM.elid('airline').value;
+            let funds = DOM.elid('funds').value;
             // Write transaction
-            contract.fund(airline, (error, result) => {
+            contract.fund(airline, funds, (error, result) => {
                 display('Airline', 'Fund', [ { label: 'Fund Status', error: error, value: result } ]);
             });
         })

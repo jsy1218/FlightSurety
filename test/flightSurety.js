@@ -105,11 +105,66 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
  
-  it('(airline) can register an Airline using registerAirline() after it is funded', async () => {
+  it('(airline) cannot register an Airline using registerAirline() because it is under funding', async () => {
+    
+    // ARRANGE
+    let newAirline = accounts[2];
+    let funds = await config.flightSuretyData.PARTICIPATION_FUND.call() / 2;
+    let reverted = false;
+
+    // ACT
+    await config.flightSuretyData.fund({from: config.firstAirline, value: funds});
+    try {
+      await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+    }
+    catch(e) {
+      reverted = true;
+      assert.equal(e.reason, "the caller airline has not paid participation fee.", "The caller cannot register.");
+    }
+
+    assert.equal(reverted, true, "New airline registration should be reverted.");      
+
+    let result = await config.flightSuretyData.isAirline.call(newAirline); 
+
+    // ASSERT
+
+    assert.equal(result, false, "Airline should not be able to register another airline since it is under funding");
+
+  });
+
+  it('(airline) cannot register an Airline using registerAirline() because it is over funding', async () => {
     
     // ARRANGE
     let newAirline = accounts[2];
     let funds = await config.flightSuretyData.PARTICIPATION_FUND.call();
+    let reverted = false;
+
+    // ACT
+    try {
+      await config.flightSuretyData.fund({from: config.firstAirline, value: funds});
+      await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+    }
+    catch(e) {
+      reverted = true;
+      console.log("WTF " + e.reason)
+      assert.equal(e.reason, "Airline over funded the surety", "The caller cannot register.");
+    }
+
+    assert.equal(reverted, true, "New airline registration should be reverted.");      
+
+    let result = await config.flightSuretyData.isAirline.call(newAirline); 
+
+    // ASSERT
+
+    assert.equal(result, false, "Airline should not be able to register another airline since it is under funding");
+
+  });
+
+  it('(airline) can register an Airline using registerAirline() after it is funded', async () => {
+    
+    // ARRANGE
+    let newAirline = accounts[2];
+    let funds = await config.flightSuretyData.PARTICIPATION_FUND.call() / 2;
 
     // ACT
     // first airline is registered and funded now
