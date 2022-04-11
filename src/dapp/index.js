@@ -15,15 +15,6 @@ import './flightsurety.css';
             console.log(error,result);
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
-
-        // User-submitted transaction
-        DOM.elid('fund').addEventListener('click', () => {
-            let airline = DOM.elid('airline').value;
-            // Write transaction
-            contract.fund(airline, (error, result) => {
-                display('Airline', 'Fund', [ { label: 'Fund Status', error: error, value: result } ]);
-            });
-        })
     
         // User-submitted transaction
         DOM.elid('register-airline').addEventListener('click', () => {
@@ -32,6 +23,16 @@ import './flightsurety.css';
             // Write transaction
             contract.registerAirline(fromAirline, airlineToRegister, (error, result) => {
                 display('Airline', 'Register airline', [ { label: 'Register Airline Status', error: error, value: result } ]);
+                DOM.elid('registered-airline').textContent = airlineToRegister;
+            });
+        })
+
+        // User-submitted transaction
+        DOM.elid('fund').addEventListener('click', () => {
+            let airline = DOM.elid('airline').value;
+            // Write transaction
+            contract.fund(airline, (error, result) => {
+                display('Airline', 'Fund', [ { label: 'Fund Status', error: error, value: result } ]);
             });
         })
 
@@ -43,6 +44,8 @@ import './flightsurety.css';
             // Write transaction
             contract.registerFlight(airline, flight, timestamp, (error, result) => {
                 display('Flight', 'Register flight', [ { label: 'Register Flight Status', error: error, value: result } ]);
+                DOM.elid('registered-flight').textContent = flight;
+                DOM.elid('registered-timestamp').textContent = timestamp;
             });
         })
 
