@@ -56,7 +56,7 @@ flightSuretyApp.events.OracleRequest({
         if (error) {
           console.log(error, payload);
         } else {
-          console.log("Submitted oracle response for oracle " + account + " with status code " + randomStatusCode);
+          console.log("Submitted oracle response for oracle " + account +  " airline " + airline + " flight " + flight + " timestamp " + timestamp + " with status code " + randomStatusCode);
         }
       });
     } else {

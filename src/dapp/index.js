@@ -73,6 +73,17 @@ import './flightsurety.css';
             });
         })
     
+        // User-submitted transaction
+        DOM.elid('view-flight-status').addEventListener('click', () => {
+            console.log("view-flight-status")
+            let flight = DOM.elid('flight').value;
+            let airline = DOM.elid('airline').value;
+            let timestamp = DOM.elid('timestamp').value;
+            // Write transaction
+            contract.viewFlightStatus(airline, flight, timestamp, (error, result) => {
+                display('Flight', 'Flight Status', [ { label: 'View Flight Status', error: error, value: result } ]);
+            });
+        })
     });
     
 

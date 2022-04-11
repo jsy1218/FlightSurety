@@ -193,4 +193,36 @@ export default class Contract {
                 }
             });
     }
+
+    viewFlightStatus(airline, flight, timestamp, callback) {
+        let self = this;
+        let payload = {
+            airline: airline,
+            flight: flight,
+            timestamp: timestamp
+        }
+        self.flightSuretyData.methods
+            .viewFlightStatus(this.airlines[payload.airline], payload.flight, payload.timestamp)
+            .call({ from: self.owner }, (error, result) => {
+                if (error) {
+                    callback(error, "cannot view status")
+                } else {
+                    if (result == 0) {
+                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: unknown")
+                    } else if (result == 10) {
+                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: on-time")
+                    } else if (result == 20) {
+                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late airline")
+                    } else if (result == 30) {
+                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late weather")
+                    } else if (result == 40) {
+                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late technical")
+                    } else if (result == 50) {
+                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late other")
+                    } else {
+                        callback(error, "cannot view status")
+                    }
+                }
+            });
+    }
 }
