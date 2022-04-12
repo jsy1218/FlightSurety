@@ -1,6 +1,6 @@
 # FlightSurety
 
-FlightSurety is a sample application project for Udacity's Blockchain course.
+This is a completed FlightSurety project, as part of the Udacity assignment.
 
 ## Install
 
@@ -8,45 +8,48 @@ This repository contains Smart Contract code in Solidity (using Truffle), tests 
 
 To install, download or clone the repo, then:
 
-`npm install`
-`truffle compile`
+`./bootstrap.sh`
 
-## Develop Client
+The bootstrap script encapsulates the startup of local ganache, contract migration, dapp as well as server, so that the developer doesn't have to open up multiple terminals to spawn them. They are run in the background.
 
-To run truffle tests:
+The bootstrap script is re-entrant, and safe to re-run, since it will kill the local ganache, dapp, as well as oracle-emulated server processes before spawning them again.
 
-`truffle test ./test/flightSurety.js`
-`truffle test ./test/oracles.js`
+## Dapps screenshots demo
 
-To use the dapp:
+### Single airline flight with single passenger insurance payout flow
 
-`truffle migrate`
-`npm run dapp`
+The first airline is Alaska, which gets registered during the contract deploy time. During the DApp startup time, the DApp also makes the Alaska fund the flight surety, so that Alaska can now register another airline. Then the American airline gets registered, and it funds another 10 ETH to the flight surety. After that, we choose flight 12AD with time 2022-12-01T18:54 to register the flight. Then the passenger John wants to purchase the insurance for the maximum amount, 1 ETH. Once submitted to Oracles, We keep viewing flight status until it is the late airline. Then we can see passenger John has 1.5 ETH credit payout due to airline late. Not until when we hit withdraw payout for passenger John, the credit still remains within the flight surety. By withdrawing, now the 1.5 ETH credit transferred to John's wallet. As a final check, we need to ensure that John doesn't have a way to exploit flight surety. We try to submit the same flight to the Oracles again to trigger airline late. However this time, John does not have any credit payout, since he already get paid out previously. No one can register the same flight again, since it's already registered.
 
-To view dapp:
+![Single airline flight with single passenger insurance payout flow](images/single-payout-flow/flow-1.png)
 
-`http://localhost:8000`
+![Single airline flight with single passenger insurance payout flow](images/single-payout-flow/flow-2.png)
 
-## Develop Server
+![Single airline flight with single passenger insurance payout flow](images/single-payout-flow/flow-3.png)
 
-`npm run server`
-`truffle test ./test/oracles.js`
+![Single airline flight with single passenger insurance payout flow](images/single-payout-flow/flow-4.png)
 
-## Deploy
+### Multi-party consensus flow
 
-To build dapp for prod:
-`npm run dapp:prod`
+The first airline Alask can register American, United, and Delta freely. But with Spirit, it needs one more vote from another airline. We will fund America airline, so that it can register Spirit. We also demonstrat that even though American airline gets registered, it cannot vote Spirit yet, until American airline funds 10 ETH cumulatively to flight surety.
 
-Deploy the contents of the ./dapp folder
+![Multi-party consensus flow](images/multiparty-consensus-flow/flow-1.png)
 
+![Multi-party consensus flow](images/multiparty-consensus-flow/flow-2.png)
 
-## Resources
+![Multi-party consensus flow](images/multiparty-consensus-flow/flow-3.png)
 
-* [How does Ethereum work anyway?](https://medium.com/@preethikasireddy/how-does-ethereum-work-anyway-22d1df506369)
-* [BIP39 Mnemonic Generator](https://iancoleman.io/bip39/)
-* [Truffle Framework](http://truffleframework.com/)
-* [Ganache Local Blockchain](http://truffleframework.com/ganache/)
-* [Remix Solidity IDE](https://remix.ethereum.org/)
-* [Solidity Language Reference](http://solidity.readthedocs.io/en/v0.4.24/)
-* [Ethereum Blockchain Explorer](https://etherscan.io/)
-* [Web3Js Reference](https://github.com/ethereum/wiki/wiki/JavaScript-API)# FlightSurety
+![Multi-party consensus flow](images/multiparty-consensus-flow/flow-4.png)
+
+# Dependencies
+
+```
+JanettekiMacBook-Pro:FlightSurety janet$ truffle version
+Truffle v5.4.22 (core: 5.4.22)
+Solidity - ^0.4.24 (solc-js)
+Node v16.13.1
+Web3.js v1.5.3
+JanettekiMacBook-Pro:FlightSurety janet$ node -v
+v16.13.1
+JanettekiMacBook-Pro:FlightSurety janet$ npm list web3 | grep web3
+└── web3@1.5.3
+```
