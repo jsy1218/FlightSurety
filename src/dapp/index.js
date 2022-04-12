@@ -41,12 +41,13 @@ import './flightsurety.css';
         DOM.elid('register-flight').addEventListener('click', () => {
             let flight = DOM.elid('flight').value;
             let airline = DOM.elid('airline').value;
-            let timestamp = DOM.elid('timestamp').value;
+            let timestamp = new Date(DOM.elid('time').value).getTime()/ 1000;
+            console.log(timestamp)
             // Write transaction
             contract.registerFlight(airline, flight, timestamp, (error, result) => {
                 display('Flight', 'Register flight', [ { label: 'Register Flight Status', error: error, value: result } ]);
                 DOM.elid('registered-flight').textContent = flight;
-                DOM.elid('registered-timestamp').textContent = timestamp;
+                DOM.elid('registered-time').textContent = DOM.elid('time').value;
             });
         })
 
@@ -56,7 +57,7 @@ import './flightsurety.css';
             let ether = DOM.elid('ether').value;
             let flight = DOM.elid('flight').value;
             let airline = DOM.elid('airline').value;
-            let timestamp = DOM.elid('timestamp').value;
+            let timestamp = new Date(DOM.elid('time').value).getTime()/ 1000;
             // Write transaction
             contract.buy(passenger, ether, airline, flight, timestamp, (error, result) => {
                 display('Insurance', 'Buy insurance', [ { label: 'Buy Insurance Status', error: error, value: result } ]);
@@ -67,7 +68,7 @@ import './flightsurety.css';
         DOM.elid('submit-oracle').addEventListener('click', () => {
             let flight = DOM.elid('flight').value;
             let airline = DOM.elid('airline').value;
-            let timestamp = DOM.elid('timestamp').value;
+            let timestamp = new Date(DOM.elid('time').value).getTime()/ 1000;
             // Write transaction
             contract.fetchFlightStatus(airline, flight, timestamp, (error, result) => {
                 display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result } ]);
@@ -79,7 +80,7 @@ import './flightsurety.css';
             console.log("view-flight-status")
             let flight = DOM.elid('flight').value;
             let airline = DOM.elid('airline').value;
-            let timestamp = DOM.elid('timestamp').value;
+            let timestamp = new Date(DOM.elid('time').value).getTime()/ 1000;
             // Write transaction
             contract.viewFlightStatus(airline, flight, timestamp, (error, result) => {
                 display('Flight', 'Flight Status', [ { label: 'View Flight Status', error: error, value: result } ]);

@@ -122,7 +122,7 @@ export default class Contract {
                     callback(error, result);
                 } else {
                     console.log(result);
-                    callback(error, "Airline " + payload.airline + " successfully registered flight " + payload.flight + " at time " + new Date(payload.timestamp * 1000))
+                    callback(error, "Airline " + payload.airline + " successfully registered flight " + payload.flight + " that will fly at " + new Date(payload.timestamp * 1000))
                 }
             });
     }
@@ -148,7 +148,7 @@ export default class Contract {
                 if (error) {
                     callback(error, result);
                 } else {
-                    callback(error, "Passenger " + payload.passenger + " successfully bought " + ether + " ether of insurance for airline " + payload.airline + " flight " + payload.flight + " at time " + new Date(payload.timestamp * 1000))
+                    callback(error, "Passenger " + payload.passenger + " successfully bought " + ether + " ether of insurance for airline " + payload.airline + " flight " + payload.flight + " that will fly at " + new Date(payload.timestamp * 1000))
                 }
             });
     }
@@ -173,17 +173,17 @@ export default class Contract {
                                 callback(error, "cannot view status")
                             } else {
                                 if (result == 0) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: unknown")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: unknown")
                                 } else if (result == 10) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: on-time")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: on-time")
                                 } else if (result == 20) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late airline")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late airline")
                                 } else if (result == 30) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late weather")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late weather")
                                 } else if (result == 40) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late technical")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late technical")
                                 } else if (result == 50) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late other")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late other")
                                 } else {
                                     callback(error, "cannot view status")
                                 }
@@ -207,17 +207,17 @@ export default class Contract {
                     callback(error, "cannot view status")
                 } else {
                     if (result == 0) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: unknown")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: unknown")
                     } else if (result == 10) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: on-time")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: on-time")
                     } else if (result == 20) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late airline")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late airline")
                     } else if (result == 30) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late weather")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late weather")
                     } else if (result == 40) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late technical")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late technical")
                     } else if (result == 50) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " timestamp " + timestamp + " status: late other")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late other")
                     } else {
                         callback(error, "cannot view status")
                     }
