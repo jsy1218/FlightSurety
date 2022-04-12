@@ -52,7 +52,7 @@ flightSuretyApp.events.OracleRequest({
   for (let account in oraclesIndexesMap) {
     let indexes = oraclesIndexesMap[account]; 
     if (indexes.includes(index)) {
-      flightSuretyApp.methods.submitOracleResponse(index, airline, flight, timestamp, randomStatusCode).call({ from: account }, (error, result) => {
+      flightSuretyApp.methods.submitOracleResponse(index, airline, flight, timestamp, randomStatusCode).send({ from: account }, (error, result) => {
         if (error) {
           console.log(error, payload);
         } else {
