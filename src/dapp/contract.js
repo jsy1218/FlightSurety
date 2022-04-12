@@ -23,9 +23,7 @@ export default class Contract {
     initialize(callback) {
         this.web3.eth.getAccounts((error, accts) => {
            
-            this.owner = accts[0];
-            this.airlines["Owner"] = this.owner;
- 
+            this.owner = accts[0]; 
             let counter = 1;
             
             while(counter < 6) {
@@ -43,9 +41,9 @@ export default class Contract {
                 }
             });
 
-            this.flightSuretyData.methods.fund().send({from: this.owner, value: this.web3.utils.toWei("10", "ether") }, (error, result) => {
+            this.flightSuretyData.methods.fund().send({from: this.airlines[this.AIRLINE_NAMES[0]], value: this.web3.utils.toWei("10", "ether") }, (error, result) => {
                 if(error) {
-                    console.log("Airline " + this.owner  + " cannot fund.");
+                    console.log("Airline " + his.AIRLINE_NAMES[0]  + " cannot fund.");
                     console.log(error);
                 }
             });
@@ -67,7 +65,7 @@ export default class Contract {
             fromAirline: fromAirline,
             airlineToRegister: airlineToRegister
         }
-        if (!airlineToRegister in this.airlines && fromAirline != "Owner") {
+        if (!airlineToRegister in this.airlines) {
             callback("airline " + airlineToRegister + " is not valid. Valid airlines are " + this.airlines.join('\r\n'))
         }
         self.flightSuretyApp.methods
@@ -84,7 +82,7 @@ export default class Contract {
                             if (result == true) {
                                 callback(error, "Airline " + payload.fromAirline + " successfully registered airline " + payload.airlineToRegister)
                             } else {
-                                callback(error, "Airline " + payload.fromAirline + " needs more registration from other airline(s)")
+                                callback(error, "Airline " + payload.airlineToRegister + " needs more registration from other airline(s) other than " + payload.fromAirline)
                             }
                         }
                     });
@@ -123,6 +121,7 @@ export default class Contract {
                 if (error) {
                     callback(error, result);
                 } else {
+                    console.log(result);
                     callback(error, "Airline " + payload.airline + " successfully registered flight " + payload.flight + " at time " + new Date(payload.timestamp * 1000))
                 }
             });

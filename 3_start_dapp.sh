@@ -1,1 +1,1 @@
-npm run dapp
+npm run dapp &

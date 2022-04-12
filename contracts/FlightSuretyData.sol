@@ -68,7 +68,7 @@ contract FlightSuretyData {
                                 public 
     {
         contractOwner = msg.sender;
-        airlines.count = 0;
+        airlines.count = 1;
         airlines.airlineStatus[firstAirline].registered = true;
         airlines.airlineStatus[firstAirline].participated = false;
     }
@@ -299,6 +299,7 @@ contract FlightSuretyData {
             airlines.airlineVotes[airline].push(tx.origin);
             success = true;
             votes = airlines.airlineVotes[airline].length;
+            airlines.count = airlines.count.add(1);
         } else {
             airlines.airlineVotes[airline].push(tx.origin);
 
@@ -309,6 +310,7 @@ contract FlightSuretyData {
                 airlines.airlineStatus[airline].registered = true;
                 success = true;
                 votes = airlines.airlineVotes[airline].length;
+                airlines.count = airlines.count.add(1);
             }
         }
 
@@ -491,7 +493,6 @@ contract FlightSuretyData {
     {
         airlines.airlineStatus[tx.origin].funded += msg.value; 
         if (airlines.airlineStatus[tx.origin].funded == PARTICIPATION_FUND) {
-            airlines.count = airlines.count.add(1);
             airlines.airlineStatus[tx.origin].participated = true;
         }
     }
