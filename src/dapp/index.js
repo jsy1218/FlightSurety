@@ -77,13 +77,30 @@ import './flightsurety.css';
     
         // User-submitted transaction
         DOM.elid('view-flight-status').addEventListener('click', () => {
-            console.log("view-flight-status")
             let flight = DOM.elid('flight').value;
             let airline = DOM.elid('airline').value;
             let timestamp = new Date(DOM.elid('time').value).getTime()/ 1000;
             // Write transaction
             contract.viewFlightStatus(airline, flight, timestamp, (error, result) => {
                 display('Flight', 'Flight Status', [ { label: 'View Flight Status', error: error, value: result } ]);
+            });
+        })
+
+        // User-submitted transaction
+        DOM.elid('get-insuree-credit').addEventListener('click', () => {
+            let passenger = DOM.elid('passenger').value;
+            // Write transaction
+            contract.getInsureeCredit(passenger, (error, result) => {
+                display('Credit', 'Insuree credit', [ { label: 'Get insuree credit', error: error, value: result } ]);
+            });
+        })
+
+        // User-submitted transaction
+        DOM.elid('payout-insuree').addEventListener('click', () => {
+            let passenger = DOM.elid('passenger').value;
+            // Write transaction
+            contract.payout(passenger, (error, result) => {
+                display('Payout', 'Payout to passenger', [ { label: 'Payout result', error: error, value: result } ]);
             });
         })
     });

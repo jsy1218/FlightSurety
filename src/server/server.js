@@ -52,11 +52,11 @@ flightSuretyApp.events.OracleRequest({
   for (let account in oraclesIndexesMap) {
     let indexes = oraclesIndexesMap[account]; 
     if (indexes.includes(index)) {
-      flightSuretyApp.methods.submitOracleResponse(index, airline, flight, timestamp, randomStatusCode).send({ from: account }, (error, result) => {
+      flightSuretyApp.methods.submitOracleResponse(index, airline, flight, timestamp, randomStatusCode).send({ from: account, gas: 6721975 }, (error, result) => {
         if (error) {
           console.log(error, payload);
         } else {
-          console.log("Submitted oracle response for oracle " + account +  " airline " + airline + " flight " + flight + " timestamp " + timestamp + " with status code " + randomStatusCode);
+          console.log("Submitted oracle response for oracle " + account +  " airline " + airline + " flight " + flight + " time " +  new Date(timestamp * 1000) + " with status code " + randomStatusCode);
         }
       });
     } else {

@@ -43,7 +43,7 @@ export default class Contract {
 
             this.flightSuretyData.methods.fund().send({from: this.airlines[this.AIRLINE_NAMES[0]], value: this.web3.utils.toWei("10", "ether") }, (error, result) => {
                 if(error) {
-                    console.log("Airline " + his.AIRLINE_NAMES[0]  + " cannot fund.");
+                    console.log("Airline " + this.AIRLINE_NAMES[0]  + " cannot fund.");
                     console.log(error);
                 }
             });
@@ -173,17 +173,17 @@ export default class Contract {
                                 callback(error, "cannot view status")
                             } else {
                                 if (result == 0) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: unknown")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status prior to Oracle update: unknown")
                                 } else if (result == 10) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: on-time")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status prior to Oracle update: on-time")
                                 } else if (result == 20) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late airline")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status prior to Oracle update: late airline")
                                 } else if (result == 30) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late weather")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status prior to Oracle update: late weather")
                                 } else if (result == 40) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late technical")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status prior to Oracle update: late technical")
                                 } else if (result == 50) {
-                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late other")
+                                    callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status prior to Oracle update: late other")
                                 } else {
                                     callback(error, "cannot view status")
                                 }
@@ -207,20 +207,60 @@ export default class Contract {
                     callback(error, "cannot view status")
                 } else {
                     if (result == 0) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: unknown")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status after to Oracle update: unknown")
                     } else if (result == 10) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: on-time")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status after to Oracle update: on-time")
                     } else if (result == 20) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late airline")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status after to Oracle update: late airline")
                     } else if (result == 30) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late weather")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status after to Oracle update: late weather")
                     } else if (result == 40) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late technical")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status after to Oracle update: late technical")
                     } else if (result == 50) {
-                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " status: late other")
+                        callback(error, "Airline " + airline + " Flight " + flight + " that will fly at " + new Date(payload.timestamp * 1000) + " with status after to Oracle update: late other")
                     } else {
                         callback(error, "cannot view status")
                     }
+                }
+            });
+    }
+
+    getInsureeCredit(passenger, callback) {
+        let self = this;
+        if (!passenger in this.passengers) {
+            callback("passengers " + passenger + " is not valid. Valid passengers are " + this.passenger.join('\r\n'))
+        }
+        self.flightSuretyData.methods
+            .getInsureeCredit()
+            .call({ from: this.passengers[passenger], gas: 6721975 }, (error, result) => {
+                if (error) {
+                    callback(error, result);
+                } else {
+                    callback(error, "Passenger " + passenger + " with credit " + Web3.utils.fromWei(result, "ether") + " ether")
+                }
+            });
+    }
+
+    payout(passenger, callback) {
+        let self = this;
+        if (!passenger in this.passengers) {
+            callback("passengers " + passenger + " is not valid. Valid passengers are " + this.passenger.join('\r\n'))
+        }
+        self.flightSuretyData.methods
+            .getInsureeCredit()
+            .call({ from: this.passengers[passenger], gas: 6721975 }, (error, value) => {
+                if (error) {
+                    callback(error, value);
+                } else {
+                    self.flightSuretyData.methods
+                    .pay()
+                    .send({ from: this.passengers[passenger], gas: 6721975 }, (error, result) => {
+                        if (error) {
+                            callback(error, result);
+                        } else {
+                            callback(error, "Passenger " + passenger + " successfully paid out " + Web3.utils.fromWei(value, "ether") + " ether of insurance credit.")
+                        }
+                    });
                 }
             });
     }

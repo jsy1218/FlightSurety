@@ -48,7 +48,23 @@
         </div>
 
         <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight"> <label class="form">Time</label> <input type="datetime-local" id="time"> <btn class="btn btn-primary" id="register-flight">Register flight</btn>
+            <label class="form">Flight</label> 
+            <select id="flight">
+                <option value="12AD">12AD</option>
+                <option value="35PG">35PG</option>
+                <option value="12PG">12PG</option>
+                <option value="01FN">01FN</option>
+                <option value="19GN">19GN</option>
+            </select>
+            <label class="form">Time</label> 
+            <select id="time">
+                <option value="2022-12-01T18:54">2022-12-01T18:54</option>
+                <option value="2023-12-01T18:54">2023-12-01T18:54</option>
+                <option value="2024-12-01T18:54">2024-12-01T18:54</option>
+                <option value="2025-12-01T18:54">2025-12-01T18:54</option>
+                <option value="2026-12-01T18:54">2026-12-01T18:54</option>
+            </select>
+            <btn class="btn btn-primary" id="register-flight">Register flight</btn>
         </div>
 
         <div class="row top-20">
@@ -72,6 +88,28 @@
         </div>
         <div class="row top-20">
             <btn class="btn btn-primary" id="view-flight-status">View Flight Status</btn>
+        </div>
+        <div class="row top-20">
+            <label class="form">Passenger</label> 
+            <select id="passenger">
+                <option value="John">John</option>
+                <option value="Jane">Jane</option>
+                <option value="Janet">Janet</option>
+                <option value="Joe">Joe</option>
+                <option value="Jason">Jason</option>
+            </select>
+            <btn class="btn btn-primary" id="get-insuree-credit">View payout</btn>
+        </div>
+        <div class="row top-20">
+            <label class="form">Passenger</label> 
+            <select id="passenger">
+                <option value="John">John</option>
+                <option value="Jane">Jane</option>
+                <option value="Janet">Janet</option>
+                <option value="Joe">Joe</option>
+                <option value="Jason">Jason</option>
+            </select>
+            <btn class="btn btn-primary" id="payout-insuree">Withdraw payout</btn>
         </div>
     </main>
 
